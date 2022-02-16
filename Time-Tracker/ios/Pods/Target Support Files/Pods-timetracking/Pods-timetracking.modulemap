@@ -1,0 +1,6 @@
+module Pods_timetracking {
+  umbrella header "Pods-timetracking-umbrella.h"
+
+  export *
+  module * { export * }
+}
