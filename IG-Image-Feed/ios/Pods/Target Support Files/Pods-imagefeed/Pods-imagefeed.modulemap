@@ -1,0 +1,6 @@
+module Pods_imagefeed {
+  umbrella header "Pods-imagefeed-umbrella.h"
+
+  export *
+  module * { export * }
+}
