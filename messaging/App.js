@@ -5,6 +5,7 @@ import {
   Image,
   TouchableHighlight,
   Keyboard,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
 
@@ -13,6 +14,11 @@ import MessageList from './components/MessageList';
 import Toolbar from './components/Toolbar';
 import InputMethodEditor from './components/InputMethodEditor';
 import Status from './components/Status';
+import KeyboardState from './components/KeyboardState';
+import MeasureLayout from './components/MeasureLayout';
+import MessagingContainer, {
+  INPUT_METHOD,
+} from './components/MessagingContainer';
 import {
   createImageMessage,
   createLocationMessage,
@@ -22,6 +28,9 @@ import {
 const App = () => {
   const [fullScreenImageId, setFullScreenImageId] = useState(null);
   const [isInputFocused, setInputFocus] = useState(false);
+  const [inputMethod, setInputMethod] = useState({
+    inputMethod: INPUT_METHOD.NONE,
+  });
   const [messages, setMessages] = useState([
     createImageMessage(
       'https://i.picsum.photos/id/870/300/300.jpg?hmac=tbU7I0f7O_fL0zzG1foTEtEr-CXjiOl5NegPpGlnSLM',
@@ -34,7 +43,11 @@ const App = () => {
     }),
   ]);
 
-  const handlePressToolbarCamera = () => {};
+  const handlePressToolbarCamera = () => {
+    setInputFocus(false);
+    setInputMethod(INPUT_METHOD.CUSTOM);
+    Keyboard.dismiss();
+  };
 
   const handlePressImage = uri => {
     setMessages([createImageMessage(uri), ...messages]);
@@ -93,6 +106,7 @@ const App = () => {
           ],
         );
         break;
+
       case 'image':
         Keyboard.dismiss();
         setInputFocus(false);
@@ -106,20 +120,32 @@ const App = () => {
 
   const handleChangeFocus = isFocused => {
     setInputFocus(isFocused);
+    if (isInputFocused === false) {
+      setInputMethod(INPUT_METHOD.NONE);
+    }
   };
 
   return (
     <View style={styles.container}>
       <Status />
-      <MessageList messages={messages} onPressMessage={handlePressMessage} />
-      <Toolbar
-        isFocused={isInputFocused}
-        onSubmit={handleSubmit}
-        onChangeFocus={handleChangeFocus}
-        onPressCamera={handlePressToolbarCamera}
-        onPressLocation={handlePressToolbarLocation}
-      />
-      <InputMethodEditor onPressImage={handlePressImage} />
+
+      <MeasureLayout>
+        <MessageList messages={messages} onPressMessage={handlePressMessage} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <Toolbar
+            isFocused={isInputFocused}
+            onSubmit={handleSubmit}
+            onChangeFocus={handleChangeFocus}
+            onPressCamera={handlePressToolbarCamera}
+            onPressLocation={handlePressToolbarLocation}
+          />
+        </KeyboardAvoidingView>
+        {inputMethod === 'CUSTOM' && (
+          <InputMethodEditor onPressImage={handlePressImage} />
+        )}
+      </MeasureLayout>
+
       {renderFullscreenImage()}
     </View>
   );
